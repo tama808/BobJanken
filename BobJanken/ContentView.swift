@@ -8,31 +8,28 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State var str = "Hello, SwiftUI"
-    @State var isPlayViewPresented = false // ステート変数を追加
+    @State var isPlayViewPresented = false
     
     var body: some View {
         VStack {
             Button(action: {
-                isPlayViewPresented = true // ボタンがタップされたらisPlayViewPresentedをtrueにする
+                isPlayViewPresented = true
             }) {
-                Rectangle()
-                    .foregroundColor(.blue)
+                Text("勝負する")
+                    .foregroundColor(.white)
+                    .font(.headline)
                     .frame(width: 350, height: 100)
+                    .background(Color.blue)
+                    .cornerRadius(10)
+                
             }
+            .fullScreenCover(isPresented: $isPlayViewPresented) {
+                PlayView()
+            }
+            
             Rectangle()
                 .foregroundColor(.purple)
                 .frame(width: 350, height: 100)
         }
-        .sheet(isPresented: $isPlayViewPresented) {
-            // PlayViewを表示する
-            PlayView()
-        }
-    }
-}
-
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        ContentView()
     }
 }
