@@ -3,7 +3,6 @@
 //  BobJanken
 //
 //  Created by taro tama on 2023/08/28.
-
 import SwiftUI
 
 struct PlayView: View {
@@ -36,6 +35,8 @@ struct PlayView: View {
                     Text("相手の手: \(enemyHand.description)")
                         .padding(.top, 20) // スペースを確保
                 }
+                // 連勝を視覚的に表示するメーター
+                VerticalRainbowRectangleMeter(consecutiveWins: consecutiveWins)
             }
             
             HStack(spacing: 40) {
@@ -55,6 +56,7 @@ struct PlayView: View {
                         .frame(width: 60, height: 60)
                 }
             }
+            
             .disabled(isPlaying) // ボタンを無効化
             
             Text(resultMessage)
@@ -92,7 +94,6 @@ struct PlayView: View {
         isRandomlyDisplaying = false
         determineResult()
         isPlaying = false // 試合が終了したら試合中フラグを解除
-
     }
     
     private func startRandomTimer() {
@@ -159,3 +160,39 @@ enum Hand: CaseIterable {
         }
     }
 }
+
+struct VerticalRainbowRectangleMeter: View {
+    var consecutiveWins: Int
+    
+    var body: some View {
+        VStack {
+            HStack(spacing: 5) {
+                ForEach(0..<min((consecutiveWins - 1) / 20 + 1, 3), id: \.self) { index in
+                    Rectangle()
+                        .fill(LinearGradient(gradient: Gradient(colors: rainbowColors), startPoint: .bottom, endPoint: .top)) // 上から下へのグラデーション
+                        .frame(width: 15, height: barHeight(for: index))
+                }
+            }
+            Text("連勝: \(min(consecutiveWins, 60))")
+                .font(.headline)
+        }
+    }
+    
+    private var rainbowColors: [Color] {
+        return [
+            Color.red,
+            Color.orange,
+            Color.yellow,
+            Color.green,
+            Color.blue,
+            Color.purple
+        ]
+    }
+    
+    private func barHeight(for index: Int) -> CGFloat {
+        let maxBarHeight: CGFloat = 60 // 最大高さを60に制限（3本分）
+        let height = CGFloat(min(consecutiveWins - index * 20, 20)) * 3 // バーの高さを計算
+        return min(height, maxBarHeight)
+    }
+}
+
