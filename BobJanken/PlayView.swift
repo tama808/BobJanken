@@ -87,22 +87,28 @@ struct PlayView: View {
     }
     
     private func play(hand: Hand) {
-        self.stopRandomTimer() // ボタンが押されたらタイマーを停止
+        self.stopRandomTimer()
         playerHand = hand
-        isRandomlyDisplaying = false // ボタンが押されたらランダム表示を停止
-        determineResult() // 結果の判定
-        isPlaying = false // 試合終了後、試合中フラグを解除
+        isRandomlyDisplaying = false
+        determineResult()
+        isPlaying = false // 試合が終了したら試合中フラグを解除
+
     }
     
     private func startRandomTimer() {
+        isPlaying = true // タイマーが始まったら試合中フラグを設定
         timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
             self.enemyHand = Hand.allCases.randomElement()!
+            // タイマーが終了したら再挑戦ボタンを有効化
+            self.isPlaying = false
         }
     }
     
     private func stopRandomTimer() {
         timer?.invalidate()
         timer = nil
+        // タイマーが停止したら再挑戦ボタンを有効化
+        isPlaying = false
     }
     
     private func determineResult() {
