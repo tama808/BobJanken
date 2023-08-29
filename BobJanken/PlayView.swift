@@ -45,27 +45,26 @@ struct PlayView: View {
                         .resizable()
                         .frame(width: 60, height: 60)
                 }
+                .disabled(isPlaying) // isPlaying が true の場合はボタンを無効化
+                
                 Button(action: { self.play(hand: .scissors) }) {
                     Image(Hand.scissors.imageName)
                         .resizable()
                         .frame(width: 60, height: 60)
                 }
+                .disabled(isPlaying) // isPlaying が true の場合はボタンを無効化
+                
                 Button(action: { self.play(hand: .paper) }) {
                     Image(Hand.paper.imageName)
                         .resizable()
                         .frame(width: 60, height: 60)
                 }
+                .disabled(isPlaying) // ボタンを無効化
             }
-            
-            .disabled(isPlaying) // ボタンを無効化
             
             Text(resultMessage)
                 .font(.headline)
                 .foregroundColor(textColor)
-                .padding()
-            
-            Text("連勝: \(consecutiveWins)")
-                .font(.headline)
                 .padding()
             
             Button("再挑戦", action: {
@@ -76,7 +75,6 @@ struct PlayView: View {
                 self.startRandomTimer() // タイマーを再開
                 self.isPlaying = true // 試合中フラグを設定
             })
-            .disabled(isPlaying) // ボタンを無効化
             
             Spacer()
         }
@@ -89,12 +87,21 @@ struct PlayView: View {
     }
     
     private func play(hand: Hand) {
+        if isPlaying {
+            return // 試合中なら何もしない
+        }
+        
         self.stopRandomTimer()
         playerHand = hand
         isRandomlyDisplaying = false
         determineResult()
-        isPlaying = false // 試合が終了したら試合中フラグを解除
+        isPlaying = true // 試合中フラグを設定
+        
+        if resultMessage.isEmpty {
+            isPlaying = false // 試合が終了したら試合中フラグを解除
+        }
     }
+    
     
     private func startRandomTimer() {
         isPlaying = true // タイマーが始まったら試合中フラグを設定
@@ -131,68 +138,69 @@ struct PlayView: View {
             lastResult = "draw" // 前回の結果を保持
         }
     }
-}
-
-enum Hand: CaseIterable {
-    case rock, scissors, paper
     
-    var iconName: String {
-        switch self {
-        case .rock: return "hand.raised.fill"
-        case .scissors: return "scissors"
-        case .paper: return "pencil.and.outline"
-        }
-    }
     
-    var imageName: String {
-        switch self {
-        case .rock: return "rock_image"
-        case .scissors: return "scissors_image"
-        case .paper: return "paper_image"
-        }
-    }
-    
-    var description: String {
-        switch self {
-        case .rock: return "グー"
-        case .scissors: return "チョキ"
-        case .paper: return "パー"
-        }
-    }
-}
-
-struct VerticalRainbowRectangleMeter: View {
-    var consecutiveWins: Int
-    
-    var body: some View {
-        VStack {
-            HStack(spacing: 5) {
-                ForEach(0..<min((consecutiveWins - 1) / 20 + 1, 3), id: \.self) { index in
-                    Rectangle()
-                        .fill(LinearGradient(gradient: Gradient(colors: rainbowColors), startPoint: .bottom, endPoint: .top)) // 上から下へのグラデーション
-                        .frame(width: 15, height: barHeight(for: index))
-                }
+    enum Hand: CaseIterable {
+        case rock, scissors, paper
+        
+        var iconName: String {
+            switch self {
+            case .rock: return "hand.raised.fill"
+            case .scissors: return "scissors"
+            case .paper: return "pencil.and.outline"
             }
-            Text("連勝: \(min(consecutiveWins, 60))")
-                .font(.headline)
+        }
+        
+        var imageName: String {
+            switch self {
+            case .rock: return "rock_image"
+            case .scissors: return "scissors_image"
+            case .paper: return "paper_image"
+            }
+        }
+        
+        var description: String {
+            switch self {
+            case .rock: return "グー"
+            case .scissors: return "チョキ"
+            case .paper: return "パー"
+            }
         }
     }
     
-    private var rainbowColors: [Color] {
-        return [
-            Color.red,
-            Color.orange,
-            Color.yellow,
-            Color.green,
-            Color.blue,
-            Color.purple
-        ]
+    struct VerticalRainbowRectangleMeter: View {
+        var consecutiveWins: Int
+        
+        var body: some View {
+            VStack {
+                HStack(spacing: 5) {
+                    ForEach(0..<min((consecutiveWins - 1) / 20 + 1, 3), id: \.self) { index in
+                        Rectangle()
+                            .fill(LinearGradient(gradient: Gradient(colors: rainbowColors), startPoint: .bottom, endPoint: .top)) // 上から下へのグラデーション
+                            .frame(width: 15, height: barHeight(for: index))
+                    }
+                }
+                Text("連勝: \(min(consecutiveWins, 60))")
+                    .font(.headline)
+            }
+        }
+        
+        private var rainbowColors: [Color] {
+            return [
+                Color.red,
+                Color.orange,
+                Color.yellow,
+                Color.green,
+                Color.blue,
+                Color.purple
+            ]
+        }
+        
+        private func barHeight(for index: Int) -> CGFloat {
+            let maxBarHeight: CGFloat = 60 // 最大高さを60に制限（3本分）
+            let height = CGFloat(min(consecutiveWins - index * 20, 20)) * 3 // バーの高さを計算
+            return min(height, maxBarHeight)
+        }
     }
     
-    private func barHeight(for index: Int) -> CGFloat {
-        let maxBarHeight: CGFloat = 60 // 最大高さを60に制限（3本分）
-        let height = CGFloat(min(consecutiveWins - index * 20, 20)) * 3 // バーの高さを計算
-        return min(height, maxBarHeight)
-    }
 }
-
