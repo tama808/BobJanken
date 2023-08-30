@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     @State var isPlayViewPresented = false
+    @State var isSignUpViewPresented = false // 追加: SignUpView表示のための状態プロパティ
     
     var body: some View {
         VStack {
@@ -27,9 +28,27 @@ struct ContentView: View {
                 PlayView()
             }
             
-            Rectangle()
-                .foregroundColor(.purple)
-                .frame(width: 350, height: 100)
+            Button(action: {
+                isSignUpViewPresented = true // ボタンアクションでSignUpView表示の状態を更新
+            }) {
+                Text("登録する")
+                    .foregroundColor(.white)
+                    .font(.headline)
+                    .frame(width: 350, height: 100)
+                    .background(Color.pink)
+                    .cornerRadius(10)
+                
+            }
+            .fullScreenCover(isPresented: $isSignUpViewPresented) {
+                SignUpView()
+            }
         }
+    }
+}
+
+
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView()
     }
 }
