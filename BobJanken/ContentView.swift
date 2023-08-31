@@ -18,6 +18,8 @@ struct ContentView: View {
     @State var isPlayViewPresented = false
     @State var isSignUpViewPresented = false
     @AppStorage("savedNickname") private var savedNickname = ""
+    @State private var password: String = ""
+    @State private var isLoggedIn: Bool = false
   
     var body: some View {
         NavigationView {
@@ -28,7 +30,6 @@ struct ContentView: View {
                     .edgesIgnoringSafeArea(.all)
                 
                 VStack {
-                    Spacer()
                     
                     Text("ボブくんの\n気ままにじゃんけん")
                         .font(.largeTitle)
@@ -37,15 +38,39 @@ struct ContentView: View {
                         .padding(.vertical, 30)
                     
                     if savedNickname.isEmpty {
+                        VStack {
+                            TextField("savedNickname", text: $savedNickname)
+                                .padding()
+                                .autocapitalization(.none)
+                            
+                            SecureField("Password", text: $password)
+                                .padding()
+                            
+                            Button("Log In") {
+                                // ここにログインのロジックを追加
+                                // 例えば、ユーザー名とパスワードが正しいかを確認し、isLoggedInをtrueに設定するなど
+                                isLoggedIn = true // 仮のログイン状態を設定
+                            }
+                            .padding()
+                            .disabled(savedNickname.isEmpty || password.isEmpty)
+                        }
+                        .padding()
+
                         Button(action: {
                             isSignUpViewPresented = true
                         }) {
-                            Text("登録する")
+                            Text("新規登録する")
                                 .foregroundColor(.white)
                                 .font(.headline)
                                 .frame(width: 150, height: 60)
                                 .background(Color.pink)
                                 .cornerRadius(10)
+                        }
+                        HStack {
+                            Image("b-nozoki")
+                                .resizable()
+                                .frame(width: 200, height: 200)
+                                .aspectRatio(contentMode: .fit)
                         }
                         .fullScreenCover(isPresented: $isSignUpViewPresented) {
                             SignUpView()
