@@ -12,6 +12,7 @@
 		595991742A9B6014005F180A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 595991732A9B6014005F180A /* Assets.xcassets */; };
 		595991772A9B6014005F180A /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 595991762A9B6014005F180A /* Preview Assets.xcassets */; };
 		5981EED62A9C258600E29D39 /* PlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5981EED52A9C258600E29D39 /* PlayView.swift */; };
+		598D854E2A9F09C6002B94C5 /* SignUpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 598D854D2A9F09C6002B94C5 /* SignUpView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -21,6 +22,7 @@
 		595991732A9B6014005F180A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		595991762A9B6014005F180A /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		5981EED52A9C258600E29D39 /* PlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayView.swift; sourceTree = "<group>"; };
+		598D854D2A9F09C6002B94C5 /* SignUpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -56,6 +58,7 @@
 				5959916F2A9B6013005F180A /* BobJankenApp.swift */,
 				595991712A9B6013005F180A /* ContentView.swift */,
 				5981EED52A9C258600E29D39 /* PlayView.swift */,
+				598D854D2A9F09C6002B94C5 /* SignUpView.swift */,
 				595991732A9B6014005F180A /* Assets.xcassets */,
 				595991752A9B6014005F180A /* Preview Content */,
 			);
@@ -140,6 +143,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				598D854E2A9F09C6002B94C5 /* SignUpView.swift in Sources */,
 				595991722A9B6013005F180A /* ContentView.swift in Sources */,
 				5981EED62A9C258600E29D39 /* PlayView.swift in Sources */,
 				595991702A9B6013005F180A /* BobJankenApp.swift in Sources */,
