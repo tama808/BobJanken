@@ -3,223 +3,184 @@
 //  BobJanken
 //
 //  Created by taro tama on 2023/08/28.
+
 import SwiftUI
 
 struct PlayView: View {
-    @State private var playerHand: Hand = .rock
-    @State private var enemyHand: Hand = .rock
-    @State private var resultMessage: String = ""
-    @State private var isRandomlyDisplaying: Bool = true
-    @State private var timer: Timer?
-    @State private var textColor: Color = Color.black
-    @State private var consecutiveWins: Int = 0
-    @State private var lastResult: String = ""
-    @State private var isPlaying: Bool = false
-    @State private var buttonText: String = ""
-    @State private var buttonColor: Color = .blue
+    // プロパティ定義
+    @State var numberA: Int = Int.random(in: 2...9)
+    @State var numberB: Int = 0
+    @State var prediction: Int = 0
+    @State var result: String = ""
+    @State var showNumberB: Bool = false
+    @State var score: Int = 0
+    @State var gameStatus: GameStatus? = nil
+    @State var isGameFinished: Bool = false
+    @State var isButtonsEnabled: Bool = true
+    
+    enum GameStatus {
+        case win
+        case lose
+    }
     
     var body: some View {
         VStack {
-            Text("じゃんけんアプリ")
-                .font(.largeTitle)
-                .padding()
-            
-            VStack {
-                if isRandomlyDisplaying {
-                    Image(enemyHand.imageName)
-                        .resizable()
-                        .frame(width: 60, height: 60)
-                        .padding(.bottom, 20)
-                } else {
-                    Image(enemyHand.imageName)
-                        .resizable()
-                        .frame(width: 60, height: 60)
-                    Text("相手の手: \(enemyHand.description)")
-                        .padding(.top, 20)
-                }
-                VerticalRainbowRectangleMeter(consecutiveWins: consecutiveWins)
+            HStack {
+                // スコア表示（左上）
+                Text("スコア: \(score)")
+                    .font(.largeTitle) // フォントサイズを大きく
+                    .padding(.top, 20) // 上部の余白を追加
+                    .padding(.leading, 20) // 左側の余白を追加
+                Spacer()
             }
-            
-            HStack(spacing: 40) {
-                Button(action: { self.play(hand: .rock) }) {
-                    Image(Hand.rock.imageName)
-                        .resizable()
-                        .frame(width: 60, height: 60)
-                }
-                .disabled(isPlaying)
+            Spacer()
+                // 数字A表示
+                Text("数字A: \(numberA)")
                 
-                Button(action: { self.play(hand: .scissors) }) {
-                    Image(Hand.scissors.imageName)
-                        .resizable()
-                        .frame(width: 60, height: 60)
-                }
-                .disabled(isPlaying)
                 
-                Button(action: { self.play(hand: .paper) }) {
-                    Image(Hand.paper.imageName)
-                        .resizable()
-                        .frame(width: 60, height: 60)
+                // 数字B表示
+                if showNumberB {
+                    Text("数字B: \(numberB)")
                 }
-                .disabled(isPlaying)
-            }
-            
-            Text(resultMessage)
-                .font(.headline)
-                .foregroundColor(textColor)
-                .padding()
-            
-            // 初回のプレイ結果時にのみ表示
-            if isPlaying {
-                Button(buttonText, action: {
-                    self.stopRandomTimer()
-                    self.resultMessage = ""
-                    self.enemyHand = .rock
-                    self.isRandomlyDisplaying = true
-                    self.startRandomTimer()
-                    self.isPlaying = true
-                })
-                .padding() // ボタンのパディング
-                .background(buttonColor) // ボタンの背景色
-                .foregroundColor(.white) // ボタンのテキスト色
-                .cornerRadius(10) // 角丸
-                .font(.headline) // ボタンのフォント
-            }
             
             Spacer()
-        }
-        .onAppear {
-            self.startRandomTimer()
-        }
-        .onDisappear {
-            self.stopRandomTimer()
-        }
-    }
-    
-    
-    
-    private func play(hand: Hand) {
-        if isPlaying {
-            return // 試合中なら何もしない
-        }
-        
-        self.stopRandomTimer()
-        playerHand = hand
-        isRandomlyDisplaying = false
-        determineResult()
-        isPlaying = true // 試合中フラグを設定
-        
-        if resultMessage.isEmpty {
-            isPlaying = false // 試合が終了したら試合中フラグを解除
-        }
-    }
-    
-    
-    private func startRandomTimer() {
-        isPlaying = true // タイマーが始まったら試合中フラグを設定
-        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
-            self.enemyHand = Hand.allCases.randomElement()!
-            // タイマーが終了したら再挑戦ボタンを有効化
-            self.isPlaying = false
-        }
-    }
-    
-    private func stopRandomTimer() {
-        timer?.invalidate()
-        timer = nil
-        // タイマーが停止したら再挑戦ボタンを有効化
-        isPlaying = false
-    }
-    
-    private func determineResult() {
-        switch (playerHand, enemyHand) {
-        case (.rock, .scissors), (.scissors, .paper), (.paper, .rock):
-            resultMessage = "勝ち！"
-            textColor = Color.red
-            buttonText = "連勝に挑戦"
-            buttonColor = Color.red
-            consecutiveWins += 1 // 連勝回数をインクリメント
-            lastResult = "win" // 前回の結果を保持
-        case (.rock, .paper), (.scissors, .rock), (.paper, .scissors):
-            resultMessage = "負け！"
-            textColor = Color.blue
-            buttonText = "再挑戦だー"
-            buttonColor = Color.blue
-            consecutiveWins = 0 // 連勝回数をリセット
-            lastResult = "lose" // 前回の結果を保持
-        default:
-            resultMessage = "引き分け！"
-            textColor = Color.black
-            buttonText = "あいこはもう一回"
-            buttonColor = Color.green
-            // 引き分けの場合は連勝回数をリセットしない
-            lastResult = "draw" // 前回の結果を保持
+            // ハイボタン
+            Button("ハイ") {
+                onHighButtonTap()
+            }
             
-        }
-    }
-    
-    
-    enum Hand: CaseIterable {
-        case rock, scissors, paper
-        
-        var iconName: String {
-            switch self {
-            case .rock: return "hand.raised.fill"
-            case .scissors: return "scissors"
-            case .paper: return "pencil.and.outline"
+            // ローボタン
+            Button("ロー") {
+                onLowButtonTap()
             }
-        }
-        
-        var imageName: String {
-            switch self {
-            case .rock: return "rock_image"
-            case .scissors: return "scissors_image"
-            case .paper: return "paper_image"
-            }
-        }
-        
-        var description: String {
-            switch self {
-            case .rock: return "グー"
-            case .scissors: return "チョキ"
-            case .paper: return "パー"
-            }
-        }
-    }
-    
-    struct VerticalRainbowRectangleMeter: View {
-        var consecutiveWins: Int
-        
-        var body: some View {
-            VStack {
-                HStack(spacing: 5) {
-                    ForEach(0..<min((consecutiveWins - 1) / 20 + 1, 3), id: \.self) { index in
-                        Rectangle()
-                            .fill(LinearGradient(gradient: Gradient(colors: rainbowColors), startPoint: .bottom, endPoint: .top)) // 上から下へのグラデーション
-                            .frame(width: 15, height: barHeight(for: index))
-                    }
+            Spacer()
+            // 結果表示
+            Text(result)
+            
+            // ゲームステータスに応じたボタン
+            switch gameStatus {
+            case .win:
+                Button("次の試合") {
+                    onNextGameButtonTap()
                 }
-                Text("連勝: \(min(consecutiveWins, 60))")
-                    .font(.headline)
+            case .lose:
+                Button("再挑戦") {
+                    onRetryButtonTap()
+                }
+            default:
+                EmptyView()
             }
+           
         }
-        
-        private var rainbowColors: [Color] {
-            return [
-                Color.red,
-                Color.orange,
-                Color.yellow,
-                Color.green,
-                Color.blue,
-                Color.purple
-            ]
-        }
-        
-        private func barHeight(for index: Int) -> CGFloat {
-            let maxBarHeight: CGFloat = 60 // 最大高さを60に制限（3本分）
-            let height = CGFloat(min(consecutiveWins - index * 20, 20)) * 3 // バーの高さを計算
-            return min(height, maxBarHeight)
+        .padding(20) // 余白を追加
+        .onAppear {
+            // 初期設定
+            setupInitialGame()
         }
     }
     
+    // ハイボタンがタップされた時の処理
+    private func onHighButtonTap() {
+        // ハイボタンを押したら、予測をハイに設定する
+        prediction = 1
+        
+        // タイマーを停止する
+        isGameFinished = true
+        
+        // 結果を計算して表示し、数字Bも表示する
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            result = predictResult()
+            showNumberB = true
+            updateScore()
+            if result == "勝ち" {
+                gameStatus = .win
+            } else {
+                gameStatus = .lose
+            }
+        }
+    }
     
+    // ローボタンがタップされた時の処理
+    private func onLowButtonTap() {
+        // ローボタンを押したら、予測をローに設定する
+        prediction = -1
+        
+        // タイマーを停止する
+        isGameFinished = true
+        
+        // 結果を計算して表示し、数字Bも表示する
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            result = predictResult()
+            showNumberB = true
+            updateScore()
+            if result == "勝ち" {
+                gameStatus = .win
+            } else {
+                gameStatus = .lose
+            }
+        }
+    }
+    
+    // 次の試合ボタンがタップされた時の処理
+    private func onNextGameButtonTap() {
+        // 次の試合ボタンを押したら、新しい数字Aとリセットする
+        numberA = Int.random(in: 2...9)
+        repeat {
+            numberB = Int.random(in: 1...10)
+        } while numberB == numberA
+        resetGame()
+    }
+    
+    // 再挑戦ボタンがタップされた時の処理
+    private func onRetryButtonTap() {
+        // 再挑戦ボタンを押したら、数字Aと数字Bをリセットし、結果とタイマーとスコアをクリアする
+        numberA = Int.random(in: 2...9)
+        repeat {
+            numberB = Int.random(in: 1...10)
+        } while numberB == numberA
+        resetGame()
+    }
+    
+    // 初期ゲームのセットアップ
+    private func setupInitialGame() {
+        repeat {
+            numberB = Int.random(in: 1...10)
+        } while numberB == numberA
+    }
+    
+    // ゲームのリセット
+    private func resetGame() {
+        prediction = 0
+        result = ""
+        isGameFinished = false
+        showNumberB = false
+        gameStatus = nil
+    }
+    
+    // 結果の予測
+    private func predictResult() -> String {
+        if prediction == 1 && numberA < numberB {
+            return "勝ち"
+        } else if prediction == -1 && numberA > numberB {
+            return "勝ち"
+        } else {
+            return "負け"
+        }
+    }
+    
+    // スコアの更新
+    private func updateScore() {
+        if result == "勝ち" {
+            if (numberA == 4 && prediction == -1) || (numberA == 7 && prediction == 1) {
+                score += 2
+            } else if (numberA == 3 && prediction == -1) || (numberA == 8 && prediction == 1) {
+                score += 3
+            } else if (numberA == 2 && prediction == -1) || (numberA == 9 && prediction == 1) {
+                score += 5
+            } else {
+                score += 1
+            }
+        }
+    }
 }
+
