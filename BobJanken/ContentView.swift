@@ -31,49 +31,32 @@ struct ContentView: View {
                 
                 VStack {
                     
-                    Text("ボブくんの\n気ままにじゃんけん")
+                    Text("ボブくんの\n気ままにハイアンドロー")
                         .font(.largeTitle)
                         .fontWeight(.bold)
                         .foregroundColor(.black)
                         .padding(.vertical, 30)
                     
                     if savedNickname.isEmpty {
-                        VStack {
-                            TextField("savedNickname", text: $savedNickname)
-                                .padding()
-                                .autocapitalization(.none)
-                            
-                            SecureField("Password", text: $password)
-                                .padding()
-                            
-                            Button("Log In") {
-                                // ここにログインのロジックを追加
-                                // 例えば、ユーザー名とパスワードが正しいかを確認し、isLoggedInをtrueに設定するなど
-                                isLoggedIn = true // 仮のログイン状態を設定
-                            }
-                            .padding()
-                            .disabled(savedNickname.isEmpty || password.isEmpty)
-                        }
-                        .padding()
-
-                        Button(action: {
-                            isSignUpViewPresented = true
-                        }) {
-                            Text("新規登録する")
+                            VStack {
+                                Button("新規登録する") {
+                                    isSignUpViewPresented = true
+                                }
                                 .foregroundColor(.white)
                                 .font(.headline)
                                 .frame(width: 150, height: 60)
                                 .background(Color.pink)
                                 .cornerRadius(10)
-                        }
+                                .fullScreenCover(isPresented: $isSignUpViewPresented) {
+                                    SignUpView()
+                                }
                         HStack {
                             Image("b-nozoki")
                                 .resizable()
                                 .frame(width: 200, height: 200)
                                 .aspectRatio(contentMode: .fit)
                         }
-                        .fullScreenCover(isPresented: $isSignUpViewPresented) {
-                            SignUpView()
+    
                         }
                         .padding(.bottom, 20)
                     } else {
@@ -95,10 +78,10 @@ struct ContentView: View {
                         Button(action: {
                             savedNickname = ""
                         }) {
-                            Text("ログアウト")
+                            Text("データをリセットする")
                                 .foregroundColor(.white)
                                 .font(.headline)
-                                .frame(width: 100, height: 40)
+                                .frame(width: 200, height: 40)
                                 .background(Color.red)
                                 .cornerRadius(10)
                         }

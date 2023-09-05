@@ -9,21 +9,20 @@ import SwiftUI
 
 struct SignUpView: View {
     @State private var nickname = ""
-    @State private var password = ""
     @State private var selectedPrefecture = Prefecture.hokkaido
     @State private var age = 18
     @State private var gender = Gender.male
     
+    // ユーザーデフォルトでデータを保存するためのプロパティ
     @AppStorage("savedNickname") private var savedNickname = ""
+    @AppStorage("selectedPrefecture") private var savedPrefecture = Prefecture.hokkaido.rawValue
+    @AppStorage("age") private var savedAge = 18
+    @AppStorage("gender") private var savedGender = Gender.male.rawValue
     
     @State private var isRegistered = false
     
     var isNicknameValid: Bool {
         nickname.count >= 2
-    }
-    
-    var isPasswordValid: Bool {
-        password.count >= 4
     }
     
     var body: some View {
@@ -32,9 +31,6 @@ struct SignUpView: View {
                 Section(header: Text("基本情報")) {
                     TextField("ニックネーム（２文字以上）", text: $nickname)
                         .foregroundColor(isNicknameValid ? .primary : .red)
-                    SecureField("パスワード（４文字以上）", text: $password)
-                        .foregroundColor(isPasswordValid ? .primary : .red)
-                    
                     Picker("都道府県", selection: $selectedPrefecture) {
                         ForEach(Prefecture.allCases, id: \.self) { prefecture in
                             Text(prefecture.rawValue)
@@ -56,10 +52,15 @@ struct SignUpView: View {
                         EmptyView()
                     }
                     Button("登録できるよ") {
+                        // ユーザーデフォルトにデータを保存
                         savedNickname = nickname
+                        savedPrefecture = selectedPrefecture.rawValue
+                        savedAge = age
+                        savedGender = gender.rawValue
+                        
                         isRegistered = true
                     }
-                    .disabled(!isNicknameValid || !isPasswordValid)
+                    .disabled(!isNicknameValid)
                 }
             }
             .navigationBarTitle("サインアップ")

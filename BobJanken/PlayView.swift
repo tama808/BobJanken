@@ -25,6 +25,7 @@ struct PlayView: View {
     
     var body: some View {
         VStack {
+            // 結果表示
             HStack {
                 // スコア表示（左上）
                 Text("スコア: \(score)")
@@ -34,28 +35,34 @@ struct PlayView: View {
                 Spacer()
             }
             Spacer()
-                // 数字A表示
-                Text("数字A: \(numberA)")
-                
-                
-                // 数字B表示
-                if showNumberB {
-                    Text("数字B: \(numberB)")
-                }
-            
+            HStack {
+                Spacer()
+                Text(result)
+                Spacer()
+                    .padding(.leading, 10)
+            }
+            // 数字B表示
+            if showNumberB {
+                Text("数字B: \(numberB)")
+            }
             Spacer()
+            // ハイボタンとローボタンを横並びに配置
+            HStack {
             // ハイボタン
             Button("ハイ") {
                 onHighButtonTap()
             }
-            
+            .padding()
+                Text("数字A: \(numberA)")
+                    .font(.title) // 数字Aのフォントサイズを設定
+                    .padding(.bottom, 20) // 下部の余白を追加
             // ローボタン
             Button("ロー") {
                 onLowButtonTap()
             }
+            .padding() // ボタン間の余白を追加
+            }
             Spacer()
-            // 結果表示
-            Text(result)
             
             // ゲームステータスに応じたボタン
             switch gameStatus {
@@ -63,14 +70,18 @@ struct PlayView: View {
                 Button("次の試合") {
                     onNextGameButtonTap()
                 }
+                        .buttonStyle(CustomButtonStyle1())
+               
             case .lose:
                 Button("再挑戦") {
                     onRetryButtonTap()
                 }
+                .buttonStyle(CustomButtonStyle2())
             default:
                 EmptyView()
             }
-           
+            Spacer()
+            
         }
         .padding(20) // 余白を追加
         .onAppear {
@@ -182,5 +193,29 @@ struct PlayView: View {
             }
         }
     }
+        struct CustomButtonStyle1: ButtonStyle {
+            func makeBody(configuration: Configuration) -> some View {
+                configuration.label
+                    .padding()
+                    .background(Color.red) // ボタンの背景色
+                    .foregroundColor(.white) // ボタンのテキストカラー
+                    .cornerRadius(10) // ボタンの角丸
+            }
+        }
+            struct CustomButtonStyle2: ButtonStyle {
+                func makeBody(configuration: Configuration) -> some View {
+                    configuration.label
+                        .padding()
+                        .background(Color.orange) // ボタンの背景色
+                        .foregroundColor(.white) // ボタンのテキストカラー
+                        .cornerRadius(10) // ボタンの角丸
+                }
+        }
+    
 }
 
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        PlayView()
+    }
+}
