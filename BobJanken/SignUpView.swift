@@ -15,10 +15,9 @@ struct SignUpView: View {
     
     // ユーザーデフォルトでデータを保存するためのプロパティ
     @AppStorage("savedNickname") private var savedNickname = ""
-    @AppStorage("selectedPrefecture") private var savedPrefecture = Prefecture.hokkaido.rawValue
-    @AppStorage("age") private var savedAge = 18
-    @AppStorage("gender") private var savedGender = Gender.male.rawValue
-    
+    @AppStorage("savedPrefecture") private var savedPrefecture: String = Prefecture.hokkaido.rawValue
+    @AppStorage("savedAge") private var savedAge = 18
+    @AppStorage("savedGender") private var savedGender: String = Gender.male.rawValue
     @State private var isRegistered = false
     
     var isNicknameValid: Bool {
@@ -36,9 +35,9 @@ struct SignUpView: View {
                             Text(prefecture.rawValue)
                         }
                     }
-                    .pickerStyle(WheelPickerStyle()) // スクロール選択
+                    .pickerStyle(WheelPickerStyle())
                     
-                    Stepper("年齢: \(age)", value: $age, in: 0...150)
+                    Stepper("年齢: \(age)", value: $age, in: 1...100)
                     
                     Picker("性別", selection: $gender) {
                         ForEach(Gender.allCases, id: \.self) { gender in
@@ -74,7 +73,7 @@ enum Prefecture: String, CaseIterable {
     var id: String { self.rawValue }
 }
     
-    enum Gender: String, CaseIterable {
+enum Gender: String, CaseIterable {
         case male = "男性"
         case female = "女性"
         case other = "どちらでもない"
