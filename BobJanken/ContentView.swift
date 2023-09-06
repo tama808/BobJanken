@@ -14,7 +14,24 @@
 
 import SwiftUI
 
+struct HoveringImage: View {
+    @State private var isHovered = false
+    @State private var rotationAngle: Double = 0.0
+
+    var body: some View {
+        Image(systemName: "star.fill")
+            .resizable()
+            .frame(width: 100, height: 100)
+            .rotationEffect(.degrees(rotationAngle))
+            .onAppear() {
+                withAnimation(Animation.easeInOut(duration: 0.5).repeatForever(autoreverses: true)) {
+                    self.rotationAngle = 5.0 // 画像を揺らす角度を設定します
+                }
+            }
+    }
+}
 struct ContentView: View {
+   
     @State var isPlayViewPresented = false
     @State var isRankingViewPresented = false
     @State var isSignUpViewPresented = false
@@ -28,6 +45,9 @@ struct ContentView: View {
     @AppStorage("savedScore") private var savedScore = ""
     
     var body: some View {
+            HoveringImage()
+                .padding()
+        
         NavigationView {
             ZStack(alignment: .center) {
                 Image("main_back")
@@ -36,17 +56,7 @@ struct ContentView: View {
                     .edgesIgnoringSafeArea(.all)
                 
                 VStack {
-                    Button("新規登録する") {
-                        isSignUpViewPresented = true
-                    }
-                    .foregroundColor(.white)
-                    .font(.headline)
-                    .frame(width: 150, height: 60)
-                    .background(Color.pink)
-                    .cornerRadius(10)
-                    .fullScreenCover(isPresented: $isSignUpViewPresented) {
-                        SignUpView()
-                    }
+                    
                     Text("ボブくんの\n気ままにハイアンドロー")
                         .font(.largeTitle)
                         .fontWeight(.bold)
@@ -86,23 +96,22 @@ struct ContentView: View {
                                 .background(Color.blue)
                                 .cornerRadius(10)
                         }
-                        .fullScreenCover(isPresented: $isPlayViewPresented) {
-                            PlayView()
+                        .sheet(isPresented: $isRankingViewPresented) {
+                            RankView()
                         }
                         .padding(.bottom, 20)
-                        
                         Button(action: {
                             isRankingViewPresented = true
                         }) {
-                            Text("ランキング")
+                            Text("あなたのランク")
                                 .foregroundColor(.white)
                                 .font(.headline)
-                                .frame(width: 300, height: 100)
+                                .frame(width: 300, height: 50)
                                 .background(Color.gray)
                                 .cornerRadius(10)
                         }
                         .fullScreenCover(isPresented: $isRankingViewPresented) {
-                            RankingView()
+                            RankView()
                         }
                         .padding(.bottom, 20)
                         
@@ -156,4 +165,4 @@ struct ContentView: View {
             }
         }
     }
-}
+    }

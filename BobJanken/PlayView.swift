@@ -19,7 +19,7 @@ struct PlayView: View {
     @State var isButtonsEnabled: Bool = true
     @AppStorage("score") private var savedScore = 0
     @State var isRankingViewPresented = false
-    
+    var userID: String = "" // ユーザーIDを追加
     enum GameStatus {
         case win
         case lose
@@ -38,7 +38,7 @@ struct PlayView: View {
                 Button(action: {
                     isRankingViewPresented = true
                 }) {
-                    Text("ランキング")
+                    Text("あなたのランク")
                         .foregroundColor(.white)
                         .font(.headline)
                         .frame(width: 100, height: 50)
@@ -46,7 +46,7 @@ struct PlayView: View {
                         .cornerRadius(10)
                 }
                 .fullScreenCover(isPresented: $isRankingViewPresented) {
-                    RankingView()
+                    RankView()
                 }
             }
             Spacer()
@@ -131,6 +131,9 @@ struct PlayView: View {
             } else {
                 gameStatus = .lose
             }
+            // スコアをユーザーデフォルトに保存
+            UserDefaults.standard.set(score, forKey: "score")
+            savedScore = score
         }
     }
     
