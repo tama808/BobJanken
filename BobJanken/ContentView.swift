@@ -31,7 +31,7 @@ struct HoveringImage: View {
     }
 }
 struct ContentView: View {
-   
+    
     @State var isPlayViewPresented = false
     @State var isRankingViewPresented = false
     @State var isSignUpViewPresented = false
@@ -45,8 +45,8 @@ struct ContentView: View {
     @AppStorage("savedScore") private var savedScore = ""
     
     var body: some View {
-            HoveringImage()
-                .padding()
+        HoveringImage()
+            .padding()
         
         NavigationView {
             ZStack(alignment: .center) {
@@ -56,12 +56,6 @@ struct ContentView: View {
                     .edgesIgnoringSafeArea(.all)
                 
                 VStack {
-                    
-                    Text("ボブくんの\n気ままにハイアンドロー")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                        .foregroundColor(.black)
-                        .padding(.vertical, 30)
                     
                     if savedNickname.isEmpty {
                         VStack {
@@ -86,20 +80,19 @@ struct ContentView: View {
                         }
                         .padding(.bottom, 20)
                     } else {
-                        Button(action: {
+                        Button("勝負する") {
                             isPlayViewPresented = true
-                        }) {
-                            Text("勝負する")
+                        }
                                 .foregroundColor(.white)
                                 .font(.headline)
                                 .frame(width: 300, height: 100)
                                 .background(Color.blue)
                                 .cornerRadius(10)
-                        }
-                        .sheet(isPresented: $isRankingViewPresented) {
-                            RankView()
+                                .fullScreenCover(isPresented: $isPlayViewPresented) {
+                            PlayView()
                         }
                         .padding(.bottom, 20)
+                            
                         Button(action: {
                             isRankingViewPresented = true
                         }) {
@@ -110,23 +103,35 @@ struct ContentView: View {
                                 .background(Color.gray)
                                 .cornerRadius(10)
                         }
-                        .fullScreenCover(isPresented: $isRankingViewPresented) {
+                        .sheet(isPresented: $isRankingViewPresented) {
                             RankView()
                         }
                         .padding(.bottom, 20)
                         
                         Button(action: {
-                            self.isResetting = true
+                            isResetting = true // リセットボタンが押されたらisResettingをtrueに設定
                         }) {
                             Text("リセット")
+                                .foregroundColor(.white)
+                                .font(.headline)
+                                .frame(width: 300, height: 50)
+                                .background(Color.red) // リセットボタンの色を変更
+                                .cornerRadius(10)
                         }
-                        .disabled(isResetting)
+                        .disabled(isResetting) // ボタンを無効にする
                         .alert(isPresented: $isResetting) {
-                            Alert(title: Text("リセット"), message: Text("すべてのユーザーデフォルトデータを削除します。よろしいですか？"), primaryButton: .default(Text("OK"), action: {
-                                UserDefaults.standard.removePersistentDomain(forName: Bundle.main.bundleIdentifier!)
-                            }), secondaryButton: .cancel())
+                            Alert(
+                                title: Text("リセット"),
+                                message: Text("すべてのユーザーデフォルトデータを削除します。よろしいですか？"),
+                                primaryButton: .default(Text("OK"), action: {
+                                    resetUserDefaults()
+                                    isResetting = false // リセット処理が完了したらisResettingをfalseに設定
+                                    // ページを再読み込みする
+                                    UIApplication.shared.windows.first?.rootViewController = UIHostingController(rootView: ContentView())
+                                }),
+                                secondaryButton: .cancel()
+                            )
                         }
-                        
                         if !savedNickname.isEmpty {
                             HStack {
                                 ZStack(alignment: .topLeading) {
@@ -165,4 +170,9 @@ struct ContentView: View {
             }
         }
     }
+    
+    // ユーザーデフォルトをリセットする処理
+    private func resetUserDefaults() {
+        UserDefaults.standard.removePersistentDomain(forName: Bundle.main.bundleIdentifier!)
     }
+}

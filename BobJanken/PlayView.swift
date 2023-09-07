@@ -4,10 +4,19 @@
 //
 //  Created by taro tama on 2023/08/28.
 
+//
+//  PlayView.swift
+//  BobJanken
+//
+//  Created by taro tama on 2023/08/28.
+
 import SwiftUI
+import AVFoundation
 
 struct PlayView: View {
+    
     // プロパティ定義
+    @State private var audioPlayer: AVAudioPlayer?
     @State var numberA: Int = Int.random(in: 2...9)
     @State var numberB: Int = 0
     @State var prediction: Int = 0
@@ -25,7 +34,9 @@ struct PlayView: View {
         case lose
     }
     let highestScoreKey = "highestScore"
+    
     var body: some View {
+        
         VStack {
             // 結果表示
             HStack {
@@ -45,19 +56,19 @@ struct PlayView: View {
                         .background(Color.gray)
                         .cornerRadius(10)
                 }
-                .fullScreenCover(isPresented: $isRankingViewPresented) {
+                .sheet(isPresented: $isRankingViewPresented) {
                     RankView()
                 }
             }
             Spacer()
-                // 最高記録の表示
-                HStack {
-                    // 最高スコア表示（左上）
-                    Text("最高スコア: \(savedScore)")
-                        .font(.largeTitle)
-                        .padding(.top, 20)
-                        .padding(.leading, 20)
-                }
+            // 最高記録の表示
+            HStack {
+                // 最高スコア表示（左上）
+                Text("最高スコア: \(getHighestScore())")
+                    .font(.largeTitle)
+                    .padding(.top, 20)
+                    .padding(.leading, 20)
+            }
             HStack {
                 Spacer()
                 Text(result)
@@ -74,6 +85,7 @@ struct PlayView: View {
                 // ハイボタン
                 Button("ハイ") {
                     onHighButtonTap()
+                    audioPlayer?.play()
                 }
                 .padding()
                 Text("数字A: \(numberA)")
@@ -82,8 +94,19 @@ struct PlayView: View {
                 // ローボタン
                 Button("ロー") {
                     onLowButtonTap()
+                    audioPlayer?.play()
                 }
                 .padding() // ボタン間の余白を追加
+            }
+            .onAppear {
+                if let soundURL = Bundle.main.url(forResource: "drumroll", withExtension: "mp3") {
+                    do {
+                        audioPlayer = try AVAudioPlayer(contentsOf: soundURL)
+                        audioPlayer?.prepareToPlay()
+                    } catch {
+                        print("Error loading sound file: \(error.localizedDescription)")
+                    }
+                }
             }
             Spacer()
             
@@ -133,7 +156,6 @@ struct PlayView: View {
             }
             // スコアをユーザーデフォルトに保存
             UserDefaults.standard.set(score, forKey: "score")
-            savedScore = score
         }
     }
     
@@ -222,10 +244,6 @@ struct PlayView: View {
             if score > getHighestScore() {
                 UserDefaults.standard.set(score, forKey: highestScoreKey)
             }
-            
-            // スコアをユーザーデフォルトに保存
-            UserDefaults.standard.set(score, forKey: "score")
-            savedScore = score
         }
     }
     
@@ -234,14 +252,14 @@ struct PlayView: View {
         return UserDefaults.standard.integer(forKey: highestScoreKey)
     }
     
-    
     // スコアの保存
     private func saveScore() {
         if score > savedScore {
-            UserDefaults.standard.set(score, forKey: "highestScore")
             savedScore = score
+            UserDefaults.standard.set(savedScore, forKey: highestScoreKey)
         }
     }
+    
     struct CustomButtonStyle1: ButtonStyle {
         func makeBody(configuration: Configuration) -> some View {
             configuration.label

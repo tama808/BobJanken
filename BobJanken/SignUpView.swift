@@ -26,13 +26,13 @@ struct SignUpView: View {
     }
     
     var isNicknameValid: Bool {
-        nickname.count >= 2
+        nickname.count >= 2 && nickname.count <= 8
     }
     var body: some View {
         NavigationView {
             Form {
                 Section(header: Text("基本情報")) {
-                    TextField("ニックネーム（２文字以上）", text: $nickname)
+                    TextField("ニックネーム（２文字〜8文字）", text: $nickname)
                         .foregroundColor(isNicknameValid ? .primary : .red)
                     Picker("都道府県", selection: $selectedPrefecture) {
                         ForEach(Prefecture.allCases, id: \.self) { prefecture in
