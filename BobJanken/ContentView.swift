@@ -14,23 +14,27 @@
 
 import SwiftUI
 
-struct HoveringImage: View {
-    @State private var isHovered = false
-    @State private var rotationAngle: Double = 0.0
-
-    var body: some View {
-        Image(systemName: "star.fill")
-            .resizable()
-            .frame(width: 100, height: 100)
-            .rotationEffect(.degrees(rotationAngle))
-            .onAppear() {
-                withAnimation(Animation.easeInOut(duration: 0.5).repeatForever(autoreverses: true)) {
-                    self.rotationAngle = 5.0 // 画像を揺らす角度を設定します
-                }
-            }
-    }
-}
 struct ContentView: View {
+    struct HoveringImage: View {
+        @State private var isHovered = false
+        @State private var rotationAngle: Double = 0.0
+        
+        var body: some View {
+            Image("title")
+                .resizable()
+                .frame(width: 300, height: 120)
+                .rotationEffect(.degrees(isHovered ? rotationAngle : 0.0))
+                .onAppear() {
+                    withAnimation(Animation.easeInOut(duration: 0.5).repeatForever(autoreverses: true)) {
+                        self.rotationAngle = 5.0
+                    }
+                }
+                .onHover { hovering in
+                    self.isHovered = hovering
+                }
+                .padding()
+        }
+    }
     
     @State var isPlayViewPresented = false
     @State var isRankingViewPresented = false
@@ -45,9 +49,6 @@ struct ContentView: View {
     @AppStorage("savedScore") private var savedScore = ""
     
     var body: some View {
-        HoveringImage()
-            .padding()
-        
         NavigationView {
             ZStack(alignment: .center) {
                 Image("main_back")
@@ -56,6 +57,7 @@ struct ContentView: View {
                     .edgesIgnoringSafeArea(.all)
                 
                 VStack {
+                    HoveringImage() // タイトルのホバリングイメージ
                     
                     if savedNickname.isEmpty {
                         VStack {
@@ -83,16 +85,16 @@ struct ContentView: View {
                         Button("勝負する") {
                             isPlayViewPresented = true
                         }
-                                .foregroundColor(.white)
-                                .font(.headline)
-                                .frame(width: 300, height: 100)
-                                .background(Color.blue)
-                                .cornerRadius(10)
-                                .fullScreenCover(isPresented: $isPlayViewPresented) {
+                        .foregroundColor(.white)
+                        .font(.headline)
+                        .frame(width: 300, height: 100)
+                        .background(Color.blue)
+                        .cornerRadius(10)
+                        .fullScreenCover(isPresented: $isPlayViewPresented) {
                             PlayView()
                         }
                         .padding(.bottom, 20)
-                            
+                        
                         Button(action: {
                             isRankingViewPresented = true
                         }) {
