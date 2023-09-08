@@ -4,10 +4,19 @@
 //
 //  Created by taro tama on 2023/08/28.
 
+//
+//  PlayView.swift
+//  BobJanken
+//
+//  Created by taro tama on 2023/08/28.
+
 import SwiftUI
+import AVFoundation
 
 struct PlayView: View {
+    
     // プロパティ定義
+    @State private var audioPlayer: AVAudioPlayer?
     @State var numberA: Int = Int.random(in: 2...9)
     @State var numberB: Int = 0
     @State var prediction: Int = 0
@@ -17,13 +26,17 @@ struct PlayView: View {
     @State var gameStatus: GameStatus? = nil
     @State var isGameFinished: Bool = false
     @State var isButtonsEnabled: Bool = true
-    
+    @AppStorage("score") private var savedScore = 0
+    @State var isRankingViewPresented = false
+    var userID: String = "" // ユーザーIDを追加
     enum GameStatus {
         case win
         case lose
     }
+    let highestScoreKey = "highestScore"
     
     var body: some View {
+        
         VStack {
             // 結果表示
             HStack {
@@ -33,8 +46,29 @@ struct PlayView: View {
                     .padding(.top, 20) // 上部の余白を追加
                     .padding(.leading, 20) // 左側の余白を追加
                 Spacer()
+                Button(action: {
+                    isRankingViewPresented = true
+                }) {
+                    Text("あなたのランク")
+                        .foregroundColor(.white)
+                        .font(.headline)
+                        .frame(width: 100, height: 50)
+                        .background(Color.gray)
+                        .cornerRadius(10)
+                }
+                .sheet(isPresented: $isRankingViewPresented) {
+                    RankView()
+                }
             }
             Spacer()
+            // 最高記録の表示
+            HStack {
+                // 最高スコア表示（左上）
+                Text("最高スコア: \(getHighestScore())")
+                    .font(.largeTitle)
+                    .padding(.top, 20)
+                    .padding(.leading, 20)
+            }
             HStack {
                 Spacer()
                 Text(result)
@@ -48,19 +82,31 @@ struct PlayView: View {
             Spacer()
             // ハイボタンとローボタンを横並びに配置
             HStack {
-            // ハイボタン
-            Button("ハイ") {
-                onHighButtonTap()
-            }
-            .padding()
+                // ハイボタン
+                Button("ハイ") {
+                    onHighButtonTap()
+                    audioPlayer?.play()
+                }
+                .padding()
                 Text("数字A: \(numberA)")
                     .font(.title) // 数字Aのフォントサイズを設定
                     .padding(.bottom, 20) // 下部の余白を追加
-            // ローボタン
-            Button("ロー") {
-                onLowButtonTap()
+                // ローボタン
+                Button("ロー") {
+                    onLowButtonTap()
+                    audioPlayer?.play()
+                }
+                .padding() // ボタン間の余白を追加
             }
-            .padding() // ボタン間の余白を追加
+            .onAppear {
+                if let soundURL = Bundle.main.url(forResource: "drumroll", withExtension: "mp3") {
+                    do {
+                        audioPlayer = try AVAudioPlayer(contentsOf: soundURL)
+                        audioPlayer?.prepareToPlay()
+                    } catch {
+                        print("Error loading sound file: \(error.localizedDescription)")
+                    }
+                }
             }
             Spacer()
             
@@ -70,8 +116,8 @@ struct PlayView: View {
                 Button("次の試合") {
                     onNextGameButtonTap()
                 }
-                        .buttonStyle(CustomButtonStyle1())
-               
+                .buttonStyle(CustomButtonStyle1())
+                
             case .lose:
                 Button("再挑戦") {
                     onRetryButtonTap()
@@ -108,6 +154,8 @@ struct PlayView: View {
             } else {
                 gameStatus = .lose
             }
+            // スコアをユーザーデフォルトに保存
+            UserDefaults.standard.set(score, forKey: "score")
         }
     }
     
@@ -150,6 +198,8 @@ struct PlayView: View {
             numberB = Int.random(in: 1...10)
         } while numberB == numberA
         resetGame()
+        // スコアを0にリセット
+        score = 0
     }
     
     // 初期ゲームのセットアップ
@@ -191,31 +241,42 @@ struct PlayView: View {
             } else {
                 score += 1
             }
-        }
-    }
-        struct CustomButtonStyle1: ButtonStyle {
-            func makeBody(configuration: Configuration) -> some View {
-                configuration.label
-                    .padding()
-                    .background(Color.red) // ボタンの背景色
-                    .foregroundColor(.white) // ボタンのテキストカラー
-                    .cornerRadius(10) // ボタンの角丸
+            if score > getHighestScore() {
+                UserDefaults.standard.set(score, forKey: highestScoreKey)
             }
         }
-            struct CustomButtonStyle2: ButtonStyle {
-                func makeBody(configuration: Configuration) -> some View {
-                    configuration.label
-                        .padding()
-                        .background(Color.orange) // ボタンの背景色
-                        .foregroundColor(.white) // ボタンのテキストカラー
-                        .cornerRadius(10) // ボタンの角丸
-                }
-        }
+    }
     
-}
-
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        PlayView()
+    // 最高スコアの取得
+    private func getHighestScore() -> Int {
+        return UserDefaults.standard.integer(forKey: highestScoreKey)
+    }
+    
+    // スコアの保存
+    private func saveScore() {
+        if score > savedScore {
+            savedScore = score
+            UserDefaults.standard.set(savedScore, forKey: highestScoreKey)
+        }
+    }
+    
+    struct CustomButtonStyle1: ButtonStyle {
+        func makeBody(configuration: Configuration) -> some View {
+            configuration.label
+                .padding()
+                .background(Color.red) // ボタンの背景色
+                .foregroundColor(.white) // ボタンのテキストカラー
+                .cornerRadius(10) // ボタンの角丸
+        }
+    }
+    
+    struct CustomButtonStyle2: ButtonStyle {
+        func makeBody(configuration: Configuration) -> some View {
+            configuration.label
+                .padding()
+                .background(Color.orange) // ボタンの背景色
+                .foregroundColor(.white) // ボタンのテキストカラー
+                .cornerRadius(10) // ボタンの角丸
+        }
     }
 }
