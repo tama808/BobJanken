@@ -15,26 +15,6 @@
 import SwiftUI
 
 struct ContentView: View {
-    struct HoveringImage: View {
-        @State private var isHovered = false
-        @State private var rotationAngle: Double = 0.0
-        
-        var body: some View {
-            Image("title")
-                .resizable()
-                .frame(width: 300, height: 120)
-                .rotationEffect(.degrees(isHovered ? rotationAngle : 0.0))
-                .onAppear() {
-                    withAnimation(Animation.easeInOut(duration: 0.5).repeatForever(autoreverses: true)) {
-                        self.rotationAngle = 5.0
-                    }
-                }
-                .onHover { hovering in
-                    self.isHovered = hovering
-                }
-                .padding()
-        }
-    }
     
     @State var isPlayViewPresented = false
     @State var isRankingViewPresented = false
@@ -50,14 +30,17 @@ struct ContentView: View {
     
     var body: some View {
         NavigationView {
-            ZStack(alignment: .center) {
+            ZStack(alignment: .bottom) {
                 Image("main_back")
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .edgesIgnoringSafeArea(.all)
-                
+
                 VStack {
-                    HoveringImage() // タイトルのホバリングイメージ
+                    
+                    Image("title2")
+                        .resizable()
+                        .frame(width: 300, height: 150)
                     
                     if savedNickname.isEmpty {
                         VStack {
@@ -157,14 +140,6 @@ struct ContentView: View {
                                 }
                             }
                         }
-                        
-                        HStack {
-                            Image("b-nozoki")
-                                .resizable()
-                                .frame(width: 100, height: 100)
-                                .aspectRatio(contentMode: .fit)
-                        }
-                        .padding(.horizontal, 20)
                     }
                 }
                 .navigationBarHidden(true)

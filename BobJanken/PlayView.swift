@@ -16,13 +16,13 @@ import AVFoundation
 struct PlayView: View {
     
     // プロパティ定義
+    @State private var score = 0
     @State private var audioPlayer: AVAudioPlayer?
     @State var numberA: Int = Int.random(in: 2...9)
     @State var numberB: Int = 0
     @State var prediction: Int = 0
     @State var result: String = ""
     @State var showNumberB: Bool = false
-    @State var score: Int = 0
     @State var gameStatus: GameStatus? = nil
     @State var isGameFinished: Bool = false
     @State var isButtonsEnabled: Bool = true
@@ -34,108 +34,177 @@ struct PlayView: View {
         case lose
     }
     let highestScoreKey = "highestScore"
+    let ScoreDigits: [String]
     
+    init() {
+        let score = UserDefaults.standard.integer(forKey: highestScoreKey)
+        self._score = State(initialValue: score)
+        self.ScoreDigits = String(score).map { String($0) }
+    }
     var body: some View {
         
-        VStack {
-            // 結果表示
-            HStack {
-                // スコア表示（左上）
-                Text("スコア: \(score)")
-                    .font(.largeTitle) // フォントサイズを大きく
-                    .padding(.top, 20) // 上部の余白を追加
-                    .padding(.leading, 20) // 左側の余白を追加
+        ZStack(alignment: .bottom) {
+            SwiftUI.Image("main_back")
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .edgesIgnoringSafeArea(.all)
+            
+            VStack {
+                // 結果表示
+                HStack {
+                    Spacer()
+                    ZStack {
+                        Image("bestscore")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 250, height: 200)
+                            .padding()
+                        VStack {
+                            HStack(spacing: -5)  {
+                                // スコア表示
+                                ForEach(ScoreDigits, id: \.self) { digit in
+                                    Image("simage\(digit)")
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                        .frame(width: 20, height: 30)
+                                        .offset(x: 70,y: -10)
+                                }
+                            }
+                            HStack(spacing: -5) {
+                                // ベストスコア表示
+                                ForEach(ScoreDigits, id: \.self) { digit in
+                                    Image("simage\(digit)")
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                        .frame(width: 20, height: 30)
+                                        .offset(x: 70,y: 17)
+                                }
+                            }
+                        }
+                    }
+                    Button(action: {
+                        isRankingViewPresented = true
+                        
+                    }) {
+                        Text("あなたのランク")
+                            .foregroundColor(.white)
+                            .font(.headline)
+                            .frame(width: 100, height: 50)
+                            .background(Color.gray)
+                            .cornerRadius(10)
+                    }
+                    .sheet(isPresented: $isRankingViewPresented) {
+                        RankView()
+                    }
+                    Spacer()
+                }
                 Spacer()
-                Button(action: {
-                    isRankingViewPresented = true
-                }) {
-                    Text("あなたのランク")
-                        .foregroundColor(.white)
-                        .font(.headline)
-                        .frame(width: 100, height: 50)
-                        .background(Color.gray)
-                        .cornerRadius(10)
-                }
-                .sheet(isPresented: $isRankingViewPresented) {
-                    RankView()
-                }
-            }
-            Spacer()
-            // 最高記録の表示
-            HStack {
-                // 最高スコア表示（左上）
-                Text("最高スコア: \(getHighestScore())")
-                    .font(.largeTitle)
-                    .padding(.top, 20)
-                    .padding(.leading, 20)
-            }
-            HStack {
-                Spacer()
-                Text(result)
-                Spacer()
-                    .padding(.leading, 10)
-            }
-            // 数字B表示
-            if showNumberB {
-                Text("数字B: \(numberB)")
-            }
-            Spacer()
-            // ハイボタンとローボタンを横並びに配置
-            HStack {
-                // ハイボタン
-                Button("ハイ") {
-                    onHighButtonTap()
-                    audioPlayer?.play()
-                }
-                .padding()
-                Text("数字A: \(numberA)")
-                    .font(.title) // 数字Aのフォントサイズを設定
-                    .padding(.bottom, 20) // 下部の余白を追加
-                // ローボタン
-                Button("ロー") {
-                    onLowButtonTap()
-                    audioPlayer?.play()
-                }
-                .padding() // ボタン間の余白を追加
-            }
-            .onAppear {
-                if let soundURL = Bundle.main.url(forResource: "drumroll", withExtension: "mp3") {
-                    do {
-                        audioPlayer = try AVAudioPlayer(contentsOf: soundURL)
-                        audioPlayer?.prepareToPlay()
-                    } catch {
-                        print("Error loading sound file: \(error.localizedDescription)")
+              
+                
+             
+                ZStack {
+                    Image("playback")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 400, height: 400)
+                    
+                    if gameStatus == .win {
+                        Image("win") // "winImage"は実際の勝利画像の名前に置き換えてください
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 200, height: 200) // 画像サイズを調整
+                            .offset(x: 50, y: -100) // "playback"の右上に配置
+                    } else if gameStatus == .lose {
+                        Image("lose") // "loseImage"は実際の敗北画像の名前に置き換えてください
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 200, height: 200) // 画像サイズを調整
+                            .offset(x: 50, y: -100) // "playback"の右上に配置
+                    }
+                    
+                    if showNumberB {
+                        ZStack {
+                            HStack(alignment: .top) {
+                                Spacer()
+                                Image("image\(numberB)")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 130, height: 130)
+                                    .padding()
+                                Spacer()
+                            }
+                        }
+                        .padding(.bottom, 150)
+                        .padding(.trailing, 200)
                     }
                 }
-            }
-            Spacer()
-            
-            // ゲームステータスに応じたボタン
-            switch gameStatus {
-            case .win:
-                Button("次の試合") {
-                    onNextGameButtonTap()
+
+                Spacer()
+                // ハイボタンとローボタンを横並びに配置
+                HStack {
+                    // ハイボタン
+                    Button(action: {
+                        onHighButtonTap()
+                        audioPlayer?.play()
+                    }) {
+                        SwiftUI.Image("up") // 画像オブジェクトを渡す
+                            .resizable() // 画像をリサイズ可能にする
+                            .frame(width: 80, height: 90) // 画像の幅と高さを設定
+                    }
+                    .padding()
+                    Image("image\(numberA)")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit) // 画像のアスペクト比を保持してフィットさせる
+                    .frame(width: 80, height: 90)
+                        .padding(.bottom, 20) // 下部の余白を追加
+                    // ローボタン
+                    Button(action: {
+                        onLowButtonTap()
+                        audioPlayer?.play()
+                    }) {
+                        SwiftUI.Image("down") // 画像オブジェクトを渡す
+                            .resizable() // 画像をリサイズ可能にする
+                            .frame(width: 80, height: 90) // 画像の幅と高さを設定
+                    }
+                    .padding() // ボタン間の余白を追加
                 }
-                .buttonStyle(CustomButtonStyle1())
+                .onAppear {
+                    if let soundURL = Bundle.main.url(forResource: "drumroll", withExtension: "mp3") {
+                        do {
+                            audioPlayer = try AVAudioPlayer(contentsOf: soundURL)
+                            audioPlayer?.prepareToPlay()
+                        } catch {
+                            print("Error loading sound file: \(error.localizedDescription)")
+                        }
+                    }
+                }
+                Spacer()
                 
-            case .lose:
-                Button("再挑戦") {
-                    onRetryButtonTap()
+                // ゲームステータスに応じたボタン
+                switch gameStatus {
+                case .win:
+                    Button("次の試合") {
+                        onNextGameButtonTap()
+                    }
+                    .buttonStyle(CustomButtonStyle1())
+                    
+                case .lose:
+                    Button("再挑戦") {
+                        onRetryButtonTap()
+                    }
+                    .buttonStyle(CustomButtonStyle2())
+                default:
+                    EmptyView()
                 }
-                .buttonStyle(CustomButtonStyle2())
-            default:
-                EmptyView()
+                
             }
-            Spacer()
-            
-        }
-        .padding(20) // 余白を追加
-        .onAppear {
-            // 初期設定
-            setupInitialGame()
+            .padding(20) // 余白を追加
+            .onAppear {
+                // 初期設定
+                setupInitialGame()
+            }
         }
     }
-    
     // ハイボタンがタップされた時の処理
     private func onHighButtonTap() {
         // ハイボタンを押したら、予測をハイに設定する
