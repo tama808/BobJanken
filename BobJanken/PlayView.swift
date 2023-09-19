@@ -11,24 +11,23 @@
 //  Created by taro tama on 2023/08/28.
 
 import SwiftUI
-import AVFoundation
 
 struct PlayView: View {
     
-    // プロパティ定義
-    @State private var audioPlayer: AVAudioPlayer?
-    @State var numberA: Int = Int.random(in: 2...9)
-    @State var numberB: Int = 0
-    @State var prediction: Int = 0
-    @State var result: String = ""
-    @State var showNumberB: Bool = false
-    @State var score: Int = 0
-    @State var gameStatus: GameStatus? = nil
-    @State var isGameFinished: Bool = false
-    @State var isButtonsEnabled: Bool = true
+    @State private var score = 0
+    @State private var highScore = UserDefaults.standard.integer(forKey: "highestScore")
+    @State private var numberA: Int = Int.random(in: 2...9)
+    @State private var numberB: Int = 0
+    @State private var prediction: Int = 0
+    @State private var result: String = ""
+    @State private var showNumberB: Bool = false
+    @State private var gameStatus: GameStatus? = nil
+    @State private var isGameFinished: Bool = false
+    @State private var isButtonsEnabled: Bool = true
     @AppStorage("score") private var savedScore = 0
-    @State var isRankingViewPresented = false
-    var userID: String = "" // ユーザーIDを追加
+    @State private var isRankingViewPresented = false
+    var userID: String = ""
+    
     enum GameStatus {
         case win
         case lose
@@ -37,114 +36,159 @@ struct PlayView: View {
     
     var body: some View {
         
-        VStack {
-            // 結果表示
-            HStack {
-                // スコア表示（左上）
-                Text("スコア: \(score)")
-                    .font(.largeTitle) // フォントサイズを大きく
-                    .padding(.top, 20) // 上部の余白を追加
-                    .padding(.leading, 20) // 左側の余白を追加
+        ZStack(alignment: .bottom) {
+            Image("main_back")
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .edgesIgnoringSafeArea(.all)
+            
+            VStack {
+                // 結果表示
+                HStack {
+                    Spacer()
+                    ZStack {
+                        Image("bestscore")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 250, height: 200)
+                            .padding()
+                        VStack {
+                            HStack(spacing: -5)  {
+                                // スコア表示
+                                Text("\(score)")
+                                    .font(.system(size: 24, weight: .bold))
+                                    .frame(width: 100, height: 50) // 幅と高さを設定
+                                    .offset(x: 80, y: 0) // X軸方向に50ポイント右にずらす
+                            }
+                            HStack(spacing: -5) {
+                                // ベストスコア表示
+                                Text("\(highScore)")
+                                    .font(.system(size: 24, weight: .bold))
+                                    .frame(width: 100, height: 50) // 幅と高さを設定
+                                    .offset(x: 80, y: 5) // X軸方向に50ポイント右にずらす
+                                
+                            }
+                        }
+                    }
+                    Button(action: {
+                        isRankingViewPresented = true
+                        
+                    }) {
+                        Text("あなたの\nランク")
+                            .foregroundColor(.white)
+                            .font(.headline)
+                            .frame(width: 100, height: 100)
+                            .background(Color.gray)
+                            .cornerRadius(10)
+                    }
+                    .buttonStyle(PlainButtonStyle()) // デフォルトのボタンスタイルを無効にする
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(Color.black, lineWidth: 4) // 枠線の色と太さを設定
+                    )
+                    .sheet(isPresented: $isRankingViewPresented) {
+                        RankView()
+                    }
+                    Spacer()
+                }
                 Spacer()
-                Button(action: {
-                    isRankingViewPresented = true
-                }) {
-                    Text("あなたのランク")
-                        .foregroundColor(.white)
-                        .font(.headline)
-                        .frame(width: 100, height: 50)
-                        .background(Color.gray)
-                        .cornerRadius(10)
-                }
-                .sheet(isPresented: $isRankingViewPresented) {
-                    RankView()
-                }
-            }
-            Spacer()
-            // 最高記録の表示
-            HStack {
-                // 最高スコア表示（左上）
-                Text("最高スコア: \(getHighestScore())")
-                    .font(.largeTitle)
-                    .padding(.top, 20)
-                    .padding(.leading, 20)
-            }
-            HStack {
-                Spacer()
-                Text(result)
-                Spacer()
-                    .padding(.leading, 10)
-            }
-            // 数字B表示
-            if showNumberB {
-                Text("数字B: \(numberB)")
-            }
-            Spacer()
-            // ハイボタンとローボタンを横並びに配置
-            HStack {
-                // ハイボタン
-                Button("ハイ") {
-                    onHighButtonTap()
-                    audioPlayer?.play()
-                }
-                .padding()
-                Text("数字A: \(numberA)")
-                    .font(.title) // 数字Aのフォントサイズを設定
-                    .padding(.bottom, 20) // 下部の余白を追加
-                // ローボタン
-                Button("ロー") {
-                    onLowButtonTap()
-                    audioPlayer?.play()
-                }
-                .padding() // ボタン間の余白を追加
-            }
-            .onAppear {
-                if let soundURL = Bundle.main.url(forResource: "drumroll", withExtension: "mp3") {
-                    do {
-                        audioPlayer = try AVAudioPlayer(contentsOf: soundURL)
-                        audioPlayer?.prepareToPlay()
-                    } catch {
-                        print("Error loading sound file: \(error.localizedDescription)")
+            ZStack {
+                    Image("play3")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 400, height: 400)
+                    
+                    if gameStatus == .win {
+                        Image("win")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 200, height: 200)
+                            .offset(x: 50, y: -100)
+                    } else if gameStatus == .lose {
+                        Image("lose")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 200, height: 200)
+                            .offset(x: 50, y: -100)
+                    }
+                    
+                    if showNumberB {
+                        ZStack {
+                            HStack(alignment: .top) {
+                                Spacer()
+                                Image("image\(numberB)")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 130, height: 130)
+                                    .padding()
+                                Spacer()
+                            }
+                        }
+                        .padding(.bottom, 150)
+                        .padding(.trailing, 200)
                     }
                 }
-            }
-            Spacer()
-            
-            // ゲームステータスに応じたボタン
-            switch gameStatus {
-            case .win:
-                Button("次の試合") {
-                    onNextGameButtonTap()
-                }
-                .buttonStyle(CustomButtonStyle1())
                 
-            case .lose:
-                Button("再挑戦") {
-                    onRetryButtonTap()
+                Spacer()
+                // ハイボタンとローボタンを横並びに配置
+                HStack {
+                    // ハイボタン
+                    Button(action: {
+                        onHighButtonTap()
+                    }) {
+                        Image("up")
+                            .resizable()
+                            .frame(width: 80, height: 90)
+                    }
+                    .padding()
+                    Image("image\(numberA)")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 80, height: 90)
+                        .padding(.bottom, 20)
+                    // ローボタン
+                    Button(action: {
+                        onLowButtonTap()
+                    }) {
+                        Image("down")
+                            .resizable()
+                            .frame(width: 80, height: 90)
+                    }
+                    .padding()
                 }
-                .buttonStyle(CustomButtonStyle2())
-            default:
-                EmptyView()
+                
+                
+                // ゲームステータスに応じたボタン
+                switch gameStatus {
+                case .win:
+                    Button("次の試合") {
+                        onNextGameButtonTap()
+                    }
+                    .buttonStyle(CustomButtonStyle1())
+                    
+                case .lose:
+                    Button("再挑戦") {
+                        onRetryButtonTap()
+                    }
+                    .buttonStyle(CustomButtonStyle2())
+                default:
+                    EmptyView()
+                    Spacer()
+                }
             }
-            Spacer()
-            
-        }
-        .padding(20) // 余白を追加
-        .onAppear {
-            // 初期設定
-            setupInitialGame()
+            .padding(20)
+            .onAppear {
+                // 初期設定
+                setupInitialGame()
+            }
         }
     }
     
     // ハイボタンがタップされた時の処理
     private func onHighButtonTap() {
-        // ハイボタンを押したら、予測をハイに設定する
         prediction = 1
-        
-        // タイマーを停止する
         isGameFinished = true
         
-        // 結果を計算して表示し、数字Bも表示する
         DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
             result = predictResult()
             showNumberB = true
@@ -154,20 +198,15 @@ struct PlayView: View {
             } else {
                 gameStatus = .lose
             }
-            // スコアをユーザーデフォルトに保存
-            UserDefaults.standard.set(score, forKey: "score")
+            saveScore()
         }
     }
     
     // ローボタンがタップされた時の処理
     private func onLowButtonTap() {
-        // ローボタンを押したら、予測をローに設定する
         prediction = -1
-        
-        // タイマーを停止する
         isGameFinished = true
         
-        // 結果を計算して表示し、数字Bも表示する
         DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
             result = predictResult()
             showNumberB = true
@@ -176,13 +215,13 @@ struct PlayView: View {
                 gameStatus = .win
             } else {
                 gameStatus = .lose
+                saveScore()
             }
         }
     }
     
     // 次の試合ボタンがタップされた時の処理
     private func onNextGameButtonTap() {
-        // 次の試合ボタンを押したら、新しい数字Aとリセットする
         numberA = Int.random(in: 2...9)
         repeat {
             numberB = Int.random(in: 1...10)
@@ -192,13 +231,11 @@ struct PlayView: View {
     
     // 再挑戦ボタンがタップされた時の処理
     private func onRetryButtonTap() {
-        // 再挑戦ボタンを押したら、数字Aと数字Bをリセットし、結果とタイマーとスコアをクリアする
         numberA = Int.random(in: 2...9)
         repeat {
             numberB = Int.random(in: 1...10)
         } while numberB == numberA
         resetGame()
-        // スコアを0にリセット
         score = 0
     }
     
@@ -232,31 +269,27 @@ struct PlayView: View {
     // スコアの更新
     private func updateScore() {
         if result == "勝ち" {
+            var scoreIncrement = 1
+            
             if (numberA == 4 && prediction == -1) || (numberA == 7 && prediction == 1) {
-                score += 2
+                scoreIncrement = 2
             } else if (numberA == 3 && prediction == -1) || (numberA == 8 && prediction == 1) {
-                score += 3
+                scoreIncrement = 3
             } else if (numberA == 2 && prediction == -1) || (numberA == 9 && prediction == 1) {
-                score += 5
-            } else {
-                score += 1
+                scoreIncrement = 5
             }
-            if score > getHighestScore() {
-                UserDefaults.standard.set(score, forKey: highestScoreKey)
-            }
+            
+            score += scoreIncrement
+            savedScore = score
         }
     }
     
-    // 最高スコアの取得
-    private func getHighestScore() -> Int {
-        return UserDefaults.standard.integer(forKey: highestScoreKey)
-    }
-    
     // スコアの保存
+
     private func saveScore() {
-        if score > savedScore {
-            savedScore = score
-            UserDefaults.standard.set(savedScore, forKey: highestScoreKey)
+        if score > highScore {
+            highScore = score
+            UserDefaults.standard.set(highScore, forKey: highestScoreKey)
         }
     }
     
@@ -264,9 +297,9 @@ struct PlayView: View {
         func makeBody(configuration: Configuration) -> some View {
             configuration.label
                 .padding()
-                .background(Color.red) // ボタンの背景色
-                .foregroundColor(.white) // ボタンのテキストカラー
-                .cornerRadius(10) // ボタンの角丸
+                .background(Color.red)
+                .foregroundColor(.white)
+                .cornerRadius(10)
         }
     }
     
@@ -274,9 +307,9 @@ struct PlayView: View {
         func makeBody(configuration: Configuration) -> some View {
             configuration.label
                 .padding()
-                .background(Color.orange) // ボタンの背景色
-                .foregroundColor(.white) // ボタンのテキストカラー
-                .cornerRadius(10) // ボタンの角丸
+                .background(Color.orange)
+                .foregroundColor(.white)
+                .cornerRadius(10)
         }
     }
 }
