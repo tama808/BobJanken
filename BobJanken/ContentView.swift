@@ -132,7 +132,7 @@ struct ContentView: View {
                                         .padding(15)
                                         .offset(x: -10, y: 30)
                                     Spacer()
-                                    Image("b-main")
+                                    Image("b-top")
                                         .resizable()
                                         .frame(width: 300, height: 300)
                                         .aspectRatio(contentMode: .fit)

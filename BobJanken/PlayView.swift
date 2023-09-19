@@ -65,7 +65,7 @@ struct PlayView: View {
                                 Text("\(highScore)")
                                     .font(.system(size: 24, weight: .bold))
                                     .frame(width: 100, height: 50) // 幅と高さを設定
-                                    .offset(x: 80, y: 0) // X軸方向に50ポイント右にずらす
+                                    .offset(x: 80, y: 5) // X軸方向に50ポイント右にずらす
                                 
                             }
                         }
@@ -74,13 +74,18 @@ struct PlayView: View {
                         isRankingViewPresented = true
                         
                     }) {
-                        Text("あなたのランク")
+                        Text("あなたの\nランク")
                             .foregroundColor(.white)
                             .font(.headline)
-                            .frame(width: 100, height: 50)
+                            .frame(width: 100, height: 100)
                             .background(Color.gray)
                             .cornerRadius(10)
                     }
+                    .buttonStyle(PlainButtonStyle()) // デフォルトのボタンスタイルを無効にする
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(Color.black, lineWidth: 4) // 枠線の色と太さを設定
+                    )
                     .sheet(isPresented: $isRankingViewPresented) {
                         RankView()
                     }
@@ -88,7 +93,7 @@ struct PlayView: View {
                 }
                 Spacer()
             ZStack {
-                    Image("playback")
+                    Image("play3")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 400, height: 400)
